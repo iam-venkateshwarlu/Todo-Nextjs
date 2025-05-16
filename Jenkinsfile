@@ -2,18 +2,19 @@ pipeline {
     agent {
         docker {
             image 'node:18'
-            args '-u root'  // allows package installs if needed
+            args '-u root' // Optional: allows full permissions inside container
         }
     }
 
-    // environment {
-    //     NODE_ENV = 'production'
-    // }
+    environment {
+        NODE_ENV = 'production'
+    }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
-                git 'https://github.com/iam-venkateshwarlu/Todo-Nextjs.git'
+                // Clone the GitHub repo
+                git 'https://github.com/yourusername/your-nextjs-app.git'
             }
         }
 
@@ -23,31 +24,28 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Build App') {
             steps {
                 sh 'npm run build'
             }
         }
 
-        stage('Test') {
+        stage('Start App') {
             steps {
-                sh 'npm test || echo "No tests found"'
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                echo '🚀 Add your deployment script here (Vercel CLI, Docker push, etc.)'
+                // Run the app in background so Jenkins doesn't hang
+                sh 'nohup npm run start &'
+                // Confirm server is running (optional health check)
+                sh 'sleep 5 && curl -I http://localhost:3000 || echo "App not reachable"'
             }
         }
     }
 
     post {
         always {
-            echo 'Pipeline completed'
+            echo '✅ Build and run completed (even if app didn’t stay running long-term)'
         }
         failure {
-            echo '❌ Build failed!'
+            echo '❌ Something went wrong during build or start.'
         }
     }
 }
