@@ -1,50 +1,34 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:18'
-        }
-    }
+    agent any
 
-    environment {
-        NODE_ENV = 'production'
+    tools {
+        nodejs 'NodeJS_18'  // Name must match what you configured in Jenkins
     }
 
     stages {
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
-                // Clone the GitHub repo
-                git 'https://github.com/yourusername/your-nextjs-app.git'
+                git 'https://github.com/iam-venkateshwarlu/Todo-Nextjs.git'
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Install') {
             steps {
                 sh 'npm install'
             }
         }
 
-        stage('Build App') {
+        stage('Build') {
             steps {
                 sh 'npm run build'
             }
         }
 
-        stage('Start App') {
+        stage('Run') {
             steps {
-                // Run the app in background so Jenkins doesn't hang
                 sh 'nohup npm run start &'
-                // Confirm server is running (optional health check)
                 sh 'sleep 5 && curl -I http://localhost:3000 || echo "App not reachable"'
             }
-        }
-    }
-
-    post {
-        always {
-            echo '✅ Build and run completed (even if app didn’t stay running long-term)'
-        }
-        failure {
-            echo '❌ Something went wrong during build or start.'
         }
     }
 }
